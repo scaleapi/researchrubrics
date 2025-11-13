@@ -45,7 +45,13 @@ cd researchrubrics
 pip install -r requirements.txt
 ```
 
-3. Configure API credentials:
+3. Download the dataset:
+```bash
+mkdir -p data/researchrubrics
+huggingface-cli download ScaleAI/researchrubrics processed_data.jsonl --local-dir data/researchrubrics
+```
+
+4. Configure API credentials:
 ```bash
 # Create .env file in project root
 echo "LITELLM_API_KEY=your_api_key_here" > .env
@@ -60,14 +66,15 @@ cd researchrubrics
 # 1. Install dependencies
 pip install -r requirements.txt
 
-# 2. Configure API key
+# 2. Download the dataset
+mkdir -p data/researchrubrics
+huggingface-cli download ScaleAI/researchrubrics processed_data.jsonl --local-dir data/researchrubrics
+
+# 3. Configure API key
 echo "LITELLM_API_KEY=your_api_key_here" > .env
 
-# 3. Place markdown reports in agent_responses/ directory
+# 4. Place markdown reports in agent_responses/ directory
 # (Reports should be named with task IDs, e.g., 683a58c9a7e7fe4e7695846f.md)
-
-# 4. Ensure processed_data.jsonl exists in data/researchrubrics/
-# (Contains rubrics and prompts for each task)
 
 # 5. Evaluate all reports
 cd src/evaluate_rubrics
@@ -184,7 +191,7 @@ python calculate_compliance_score.py
 
 ### Input Data (processed_data.jsonl)
 
-The input data file `data/researchrubrics/processed_data.jsonl` contains one JSON object per line:
+The input data file `data/researchrubrics/processed_data.jsonl` should be downloaded from the [ScaleAI/researchrubrics](https://huggingface.co/datasets/ScaleAI/researchrubrics) HuggingFace dataset and placed in the `data/researchrubrics/` directory. The file contains one JSON object per line:
 
 ```json
 {
