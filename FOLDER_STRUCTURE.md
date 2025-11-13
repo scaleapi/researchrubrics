@@ -1,87 +1,64 @@
-# Deep Research Benchmarks - Folder Structure
+# Research Rubrics - Folder Structure
 
-This document describes the complete folder structure for the Deep Research Benchmarks release.
+This document describes the complete folder structure for the Research Rubrics project.
 
 ## 📁 Complete Directory Structure
 
 ```
-public_release_experiments/
+researchrubrics/
 │
 ├── 📄 Documentation Files (root level)
 │   ├── README.md                      # Main documentation
 │   ├── QUICKSTART.md                  # Quick start guide
 │   ├── INSTALLATION.md                # Installation guide
 │   ├── DATA_FORMAT.md                 # Data format specifications
-│   ├── CONTRIBUTING.md                # Contribution guidelines
-│   ├── CHANGELOG.md                   # Version history
+│   ├── FOLDER_STRUCTURE.md            # This file
 │   ├── FILE_MANIFEST.md               # File index
+│   ├── SETUP_GUIDE.md                 # Setup instructions
+│   ├── PACKAGE_SUMMARY.md             # Package summary
 │   ├── LICENSE                        # MIT License
 │   └── CITATION.bib                   # BibTeX citation
 │
 ├── ⚙️ Configuration Files (root level)
 │   ├── requirements.txt               # Python dependencies
 │   ├── setup.py                       # Package configuration
-│   ├── .env.example                   # Environment template
-│   ├── .env                           # Your API keys (DO NOT COMMIT)
+│   ├── .env                           # Your API key (DO NOT COMMIT)
 │   └── .gitignore                     # Git exclusions
 │
 ├── 📦 src/                            # Source code
 │   │
-│   ├── extract_rubrics/               # Rubric extraction module
-│   │   ├── __init__.py                # Package marker (optional)
-│   │   ├── extract_rubrics_batch.py   # Batch extraction script
-│   │   └── extract_rubrics_markitdown_onetask.py  # Single task extractor
+│   ├── __init__.py                    # Package marker
 │   │
 │   ├── evaluate_rubrics/              # Rubric evaluation module
-│   │   ├── __init__.py                # Package marker (optional)
-│   │   ├── evaluate_rubrics_batch.py  # Batch evaluation script
-│   │   ├── evaluate_rubrics_markitdown_onetask.py  # Single task evaluator
-│   │   └── prompts/                   # Evaluation prompts
-│   │       ├── binary/                # Binary evaluation prompts
-│   │       │   ├── system_prompt.txt
-│   │       │   └── user_prompt_template.txt
-│   │       └── ternary/               # Ternary evaluation prompts
-│   │           ├── system_prompt.txt
-│   │           └── user_prompt_template.txt
+│   │   ├── evaluate_single_report.py  # Single report evaluator
+│   │   └── evaluate_reports_batch.py  # Batch evaluation script
 │   │
-│   └── calculate_metrics/             # Metrics calculation module
-│       ├── __init__.py                # Package marker (optional)
-│       ├── calculate_F1_score.py      # F1 score calculation
-│       ├── calculate_final_score.py   # Weighted score calculation
-│       └── calculate_failure_breakdown.py  # Failure analysis
+│   ├── calculate_metrics/             # Metrics calculation module
+│   │   └── calculate_compliance_score.py  # Compliance score calculation
+│   │
+│   └── prompts/                       # Evaluation prompt templates
+│       ├── system_prompt.txt          # System prompt for evaluator
+│       ├── user_prompt.txt            # User prompt template
+│       ├── chunk_prompt_template.txt  # Prompt for chunk evaluation
+│       └── synthesis_prompt_template.txt  # Prompt for synthesizing chunks
 │
 ├── 📊 data/                           # Data directory
-│   ├── raw_csvs/                      # Input: Raw CSV files
-│   │   └── [your_csv_files.csv]
-│   ├── processed_df/                  # Output: Compiled datasets
-│   │   ├── compiled_dataset.csv
-│   │   └── compiled_dataset.parquet
-│   ├── PDFs/                          # Downloaded/generated PDFs
-│   │   └── [task_name]/               # One directory per task
-│   │       ├── gemini.pdf
-│   │       ├── chatgpt.pdf
-│   │       └── perplexity.pdf
-│   └── predownloaded_pdfs/           # Optional: Pre-downloaded PDFs
-│       └── [task_name]/
-│           ├── gemini.pdf
-│           ├── chatgpt.pdf
-│           └── perplexity.pdf
+│   └── researchrubrics/               # Input data
+│       ├── processed_data.jsonl       # Rubrics and task metadata (JSONL)
+│       └── README.md                  # Dataset documentation template
 │
-├── 📈 results/                        # Evaluation results
-│   └── [mm_dd]/                       # Results by date
-│       └── [timestamp]/               # Results by timestamp
-│           └── processed_df/
-│               ├── compiled_dataset.csv
-│               └── compiled_dataset.parquet
+├── 📝 agent_responses/                # Input: Markdown reports to evaluate
+│   ├── 683a58c9a7e7fe4e7695846f.md   # AI-generated report (sample 1)
+│   ├── 683a58c9a7e7fe4e7695848b.md   # AI-generated report (sample 2)
+│   └── 683a58c9a7e7fe4e7695848e.md   # AI-generated report (sample 3)
 │
-├── 💾 cache/                          # Cached conversions
-│   └── [hash].md                      # Cached markdown conversions
+├── 📈 results/                        # Evaluation results (JSONL format)
+│   └── batch_evaluation_YYYYMMDD_HHMMSS.jsonl  # Timestamped results
 │
-└── 🧪 tests/                          # Test files (optional)
-    ├── __init__.py
-    ├── test_extract_rubrics.py
-    ├── test_evaluate_rubrics.py
-    └── test_calculate_metrics.py
+├── 💾 cache/                          # Reserved for future use
+│
+└── 🧪 tests/                          # Test files
+    └── __init__.py                    # Package marker
 ```
 
 ## 📋 Setup Instructions
@@ -90,87 +67,52 @@ public_release_experiments/
 
 ```bash
 # Navigate to your project root
-cd public_release_experiments
+cd researchrubrics
 
 # Create all required directories
-mkdir -p src/extract_rubrics
-mkdir -p src/evaluate_rubrics/prompts/binary
-mkdir -p src/evaluate_rubrics/prompts/ternary
+mkdir -p src/evaluate_rubrics
 mkdir -p src/calculate_metrics
-mkdir -p data/raw_csvs
-mkdir -p data/processed_df
-mkdir -p data/PDFs
-mkdir -p data/predownloaded_pdfs
+mkdir -p src/prompts
+mkdir -p data/researchrubrics
+mkdir -p agent_responses
 mkdir -p results
 mkdir -p cache
 mkdir -p tests
 ```
 
-### Step 2: Place Documentation Files
-
-All documentation files go in the root `public_release_experiments/` directory:
+### Step 2: Create .env File
 
 ```bash
-# In public_release_experiments/
-cp /path/to/README.md .
-cp /path/to/QUICKSTART.md .
-cp /path/to/INSTALLATION.md .
-cp /path/to/DATA_FORMAT.md .
-cp /path/to/CONTRIBUTING.md .
-cp /path/to/CHANGELOG.md .
-cp /path/to/FILE_MANIFEST.md .
-cp /path/to/LICENSE .
-cp /path/to/CITATION.bib .
+# In researchrubrics/ root
+echo "LITELLM_API_KEY=your_api_key_here" > .env
 ```
 
-### Step 3: Place Configuration Files
+### Step 3: Install Dependencies
 
 ```bash
-# In public_release_experiments/
-cp /path/to/requirements.txt .
-cp /path/to/setup.py .
-cp /path/to/.gitignore .
-cp /path/to/.env.example .
-
-# Create your .env file
-cp .env.example .env
-# Edit .env and add your API key
+# In researchrubrics/ root
+pip install -r requirements.txt
 ```
 
-### Step 4: Place Source Code
+### Step 4: Verify Data Files
 
-Your existing code files go in their respective directories:
+Ensure your input data is in place:
 
 ```bash
-# Extract rubrics module
-cp /path/to/extract_rubrics_batch.py src/extract_rubrics/
-cp /path/to/extract_rubrics_markitdown_onetask.py src/extract_rubrics/
+# Check that processed_data.jsonl exists
+ls data/researchrubrics/processed_data.jsonl
 
-# Evaluate rubrics module
-cp /path/to/evaluate_rubrics_batch.py src/evaluate_rubrics/
-cp /path/to/evaluate_rubrics_markitdown_onetask.py src/evaluate_rubrics/
-
-# Prompts
-cp /path/to/prompts/binary/system_prompt.txt src/evaluate_rubrics/prompts/binary/
-cp /path/to/prompts/binary/user_prompt_template.txt src/evaluate_rubrics/prompts/binary/
-cp /path/to/prompts/ternary/system_prompt.txt src/evaluate_rubrics/prompts/ternary/
-cp /path/to/prompts/ternary/user_prompt_template.txt src/evaluate_rubrics/prompts/ternary/
-
-# Calculate metrics module
-cp /path/to/calculate_F1_score.py src/calculate_metrics/
-cp /path/to/calculate_final_score.py src/calculate_metrics/
-cp /path/to/calculate_failure_breakdown.py src/calculate_metrics/
+# Check that markdown reports exist
+ls agent_responses/*.md
 ```
 
-### Step 5: Add __init__.py Files (Optional)
-
-For proper Python package structure:
+### Step 5: Test the Installation
 
 ```bash
-touch src/__init__.py
-touch src/extract_rubrics/__init__.py
-touch src/evaluate_rubrics/__init__.py
-touch src/calculate_metrics/__init__.py
+# Test evaluation module (from project root)
+cd src/evaluate_rubrics
+python -c "from evaluate_single_report import RubricEvaluator; print('✓ Module OK')"
+cd ../..
 ```
 
 ## 🎯 Key Directory Purposes
@@ -180,27 +122,25 @@ All user-facing documentation lives at the root level for easy discovery.
 
 ### src/
 Contains all Python source code, organized by functionality:
-- **extract_rubrics/**: CSV processing and rubric extraction
-- **evaluate_rubrics/**: LLM-based evaluation
-  - **prompts/binary/**: Binary evaluation prompts (2 classes)
-  - **prompts/ternary/**: Ternary evaluation prompts (3 classes)
-- **calculate_metrics/**: Metric computation and analysis
+- **evaluate_rubrics/**: LLM-based rubric evaluation scripts
+- **calculate_metrics/**: Compliance score calculation
+- **prompts/**: Evaluation prompt templates (system, user, chunk, synthesis)
 
 ### data/
-All data files, organized by stage:
-- **raw_csvs/**: Your input CSV files
-- **processed_df/**: Compiled datasets after extraction
-- **PDFs/**: PDFs organized by task name (task_name/gemini.pdf, chatgpt.pdf, perplexity.pdf)
-- **predownloaded_pdfs/**: Optional backup PDFs in same structure
+Input data directory:
+- **researchrubrics/**: Contains `processed_data.jsonl` with rubrics and task metadata
+
+### agent_responses/
+Markdown reports to be evaluated:
+- Each file named with its `sample_id` (e.g., `683a58c9a7e7fe4e7695846f.md`)
 
 ### results/
-Evaluation outputs, automatically organized by date and timestamp:
-- Format: `results/MM_DD/YYYYMMDD_HHMMSS/processed_df/`
+Evaluation outputs in JSONL format:
+- Format: `batch_evaluation_YYYYMMDD_HHMMSS.jsonl`
+- One JSON object per line, each representing a rubric evaluation
 
 ### cache/
-Temporary cached files (markdown conversions):
-- Auto-generated, can be deleted safely
-- Improves performance on repeated evaluations
+Reserved for future use (currently unused)
 
 ## 🔍 Path References in Code
 
@@ -208,17 +148,16 @@ The code uses these path patterns:
 
 ```python
 # From any script in src/[module]/
-base_dir = Path(__file__).parent.parent.parent  # Goes to public_release_experiments/
+base_dir = Path(__file__).parent.parent.parent  # Goes to researchrubrics/
 
 # Common paths used in code:
-csv_path = base_dir / 'data' / 'raw_csvs' / 'file.csv'
-compiled = base_dir / 'data' / 'processed_df' / 'compiled_dataset.csv'
-pdf_dir = base_dir / 'data' / 'PDFs' / task_name
-results = base_dir / 'results' / date / timestamp
+data_file = base_dir / 'data' / 'researchrubrics' / 'processed_data.jsonl'
+agent_responses = base_dir / 'agent_responses'
+results = base_dir / 'results'
 cache = base_dir / 'cache'
 
 # For prompts (from evaluate_rubrics/):
-prompts_dir = Path(__file__).parent / 'prompts' / prompt_type
+prompts_dir = Path(__file__).parent.parent / 'prompts'
 ```
 
 ## ✅ Verification
@@ -262,20 +201,15 @@ requirements.txt
 pip install -r requirements.txt
 
 # 2. Configure API key
-cp .env.example .env
-# Edit .env and add OPENAI_API_KEY
+echo "LITELLM_API_KEY=your_key_here" > .env
 
-# 3. Run extraction
-cd src/extract_rubrics
-python extract_rubrics_batch.py
+# 3. Run batch evaluation
+cd src/evaluate_rubrics
+python evaluate_reports_batch.py
 
-# 4. Run evaluation
-cd ../evaluate_rubrics
-python evaluate_rubrics_batch.py
-
-# 5. Calculate metrics
+# 4. Calculate compliance scores
 cd ../calculate_metrics
-python calculate_F1_score.py
+python calculate_compliance_score.py
 ```
 
 ## 📦 For Distribution

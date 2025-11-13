@@ -1,98 +1,93 @@
 # Quick Start Guide
 
-This guide will help you get started with the Deep Research Benchmarks codebase in minutes.
+This guide will help you get started with the Research Rubrics codebase in minutes.
 
 ## Prerequisites
 
 - Python 3.8+
-- OpenAI API key (or compatible endpoint)
+- LiteLLM API key (for accessing Gemini 2.5 Pro)
 
 ## Installation
 
 ```bash
 # Clone the repository
 git clone <repository-url>
-cd public_release_experiments
+cd researchrubrics
 
 # Install dependencies
 pip install -r requirements.txt
 
 # Set up environment
-cp .env.example .env
-# Edit .env and add your OPENAI_API_KEY
+echo "LITELLM_API_KEY=your_api_key_here" > .env
 ```
 
 ## Basic Workflow
 
-### Step 1: Extract Rubrics
+### Step 1: Prepare Your Data
 
-Process your raw CSV files to extract rubrics and ground truth:
+Ensure you have:
+1. `data/researchrubrics/processed_data.jsonl` - Contains rubrics and prompts
+2. Markdown files in `agent_responses/` - Named with sample IDs (e.g., `683a58c9a7e7fe4e7695846f.md`)
 
-```bash
-cd src/extract_rubrics
-python extract_rubrics_batch.py
-```
-
-**Output**: `data/processed_df/compiled_dataset.csv` and `compiled_dataset.parquet`
-
-### Step 2: Evaluate with LLMs
-
-Evaluate documents against rubric criteria:
+### Step 2: Evaluate Reports
 
 ```bash
-cd ../evaluate_rubrics
-python evaluate_rubrics_batch.py
+cd src/evaluate_rubrics
+python evaluate_reports_batch.py
 ```
 
-**Output**: `results/<date>/<timestamp>/processed_df/compiled_dataset.csv`
+This will:
+- Process all `.md` files in `agent_responses/`
+- Evaluate each report against its rubrics
+- Save results to `results/batch_evaluation_YYYYMMDD_HHMMSS.jsonl`
 
-### Step 3: Calculate Metrics
-
-Compare ground truth vs predictions:
+### Step 3: Calculate Compliance Scores
 
 ```bash
 cd ../calculate_metrics
-
-# Calculate F1 scores
-python calculate_F1_score.py
-
-# Calculate weighted scores
-python calculate_final_score.py
-
-# Analyze failure patterns
-python calculate_failure_breakdown.py
+python calculate_compliance_score.py
 ```
 
-## Example: Single Task Evaluation
+This will display compliance scores for each evaluated report.
 
-For testing or debugging, evaluate a single task:
+## Example: Single Report Evaluation
+
+For testing or debugging, evaluate a single report:
 
 ```python
 import asyncio
-import sys
 from pathlib import Path
+import sys
 
 # Add src directory to path if running from project root
-sys.path.insert(0, str(Path(__file__).parent / 'src' / 'evaluate_rubrics'))
+sys.path.insert(0, 'src/evaluate_rubrics')
 
-from evaluate_rubrics_markitdown_onetask import evaluate_task_rubrics
+from evaluate_single_report import evaluate_task_rubrics
 
 async def main():
-    # Evaluate a specific task
-    results_df = await evaluate_task_rubrics(
-        task_name="683a58c9a7e7fe4e7695846f",
-        binary=False  # Use ternary evaluation
-    )
+    # Evaluate a specific markdown file
+    markdown_file = "agent_responses/683a58c9a7e7fe4e7695846f.md"
+    results_df, compliance_score = await evaluate_task_rubrics(markdown_file)
     
     # Display results
+    print(f"\nCompliance Score: {compliance_score:.2%}")
     print(f"Evaluated {len(results_df)} rubrics")
-    print(f"Average score: {results_df['score'].mean():.3f}")
+    print(f"Average confidence: {results_df['confidence'].mean():.2f}")
+    print(f"Total tokens used: {results_df['tokens_used'].sum()}")
     print(f"Total cost: ${results_df['cost'].sum():.4f}")
+    
+    # Show some rubric results
+    print("\nSample Results:")
+    for idx, row in results_df.head(3).iterrows():
+        print(f"\n{idx+1}. {row['rubric_title'][:60]}...")
+        print(f"   Verdict: {row['verdict']}")
+        print(f"   Score: {row['score']}")
+        print(f"   Confidence: {row['confidence']}")
 
 asyncio.run(main())
 ```
 
-**Note**: When running scripts from their directories (e.g., `cd src/evaluate_rubrics && python evaluate_rubrics_batch.py`), imports work automatically.
+**Note**: When running scripts from their directories (e.g., `cd src/evaluate_rubrics && python evaluate_reports_batch.py`), imports work automatically.
 
 ## Example: Custom Configuration
 
@@ -104,180 +99,161 @@ import os
 import sys
 from pathlib import Path
 
-# Add src directory to path if needed
-sys.path.insert(0, str(Path(__file__).parent / 'src' / 'evaluate_rubrics'))
+sys.path.insert(0, 'src/evaluate_rubrics')
 
-from evaluate_rubrics_markitdown_onetask import RubricEvaluator
+from evaluate_single_report import RubricEvaluator
 
-# Initialize with custom settings
-evaluator = RubricEvaluator(
-    api_key=os.getenv("OPENAI_API_KEY"),
-    base_url="https://example.com",  # Custom endpoint
-    model="gpt-4o",           # Use GPT-4o instead of GPT-5
-    binary=True,              # Binary evaluation mode
-    max_concurrent=10         # Limit concurrent requests
-)
-
-# Process documents
 async def main():
-    results = await evaluator.evaluate_all_rubrics(
-        rubrics=rubrics,
-        pdf_paths=pdf_paths,
-        save_results=True
+    # Initialize with custom settings
+    evaluator = RubricEvaluator(
+        api_key=os.getenv("LITELLM_API_KEY"),
+        model="litellm_proxy/gemini/gemini-2.5-pro-preview-06-05",
+        max_concurrent=10  # Reduce concurrent requests if hitting rate limits
     )
-    print(f"Evaluation complete: {len(results)} results")
+    
+    # Evaluate manually
+    markdown_content = Path("agent_responses/683a58c9a7e7fe4e7695846f.md").read_text()
+    rubrics = [...]  # Load from processed_data.jsonl
+    
+    results = []
+    for rubric in rubrics:
+        result = await evaluator.evaluate_single_rubric(
+            document_content=markdown_content,
+            rubric_criterion=rubric['criterion']
+        )
+        results.append(result)
+    
+    print(f"Completed {len(results)} evaluations")
 
 asyncio.run(main())
 ```
 
-## Example: Binary vs Ternary Evaluation
+## Example: Analyzing Results
 
-**Ternary Mode** (default - 3 classes):
-```python
-results = await evaluate_task_rubrics(
-    task_name="your_task",
-    binary=False  # Satisfied / Partially Satisfied / Not Satisfied
-)
-```
-
-**Binary Mode** (strict pass/fail):
-```python
-results = await evaluate_task_rubrics(
-    task_name="your_task",
-    binary=True  # Satisfied / Not Satisfied
-)
-```
-
-## Example: Batch Processing with Progress
-
-Monitor progress during batch processing:
+Process evaluation results:
 
 ```python
-from tqdm import tqdm
+import json
 import pandas as pd
 
-# Load all tasks
-df = pd.read_csv("data/processed_df/compiled_dataset.csv")
-
+# Read evaluation results
 results = []
-for idx, task_row in tqdm(df.iterrows(), total=len(df)):
-    result = await evaluate_task_rubrics(
-        task_row=task_row,
-        save_results=False
-    )
-    results.append(result)
+with open('results/batch_evaluation_20251113_093457.jsonl', 'r') as f:
+    for line in f:
+        results.append(json.loads(line))
+
+df = pd.DataFrame(results)
+
+# Group by sample_id
+by_sample = df.groupby('sample_id').agg({
+    'score': 'mean',
+    'cost': 'sum',
+    'tokens_used': 'sum',
+    'confidence': 'mean'
+})
+
+print("\nResults by Sample:")
+print(by_sample)
+
+# Analyze by rubric axis
+with open('data/researchrubrics/processed_data.jsonl', 'r') as f:
+    data = [json.loads(line) for line in f]
+
+# Find which rubric axes have the lowest scores
+axis_scores = {}
+for _, row in df.iterrows():
+    # Find the rubric's axis
+    for task in data:
+        if task['sample_id'] == row['sample_id']:
+            for rubric in task['rubrics']:
+                if rubric['criterion'] == row['rubric_title']:
+                    axis = rubric['axis']
+                    if axis not in axis_scores:
+                        axis_scores[axis] = []
+                    axis_scores[axis].append(row['score'])
+                    break
+
+print("\nAverage Scores by Axis:")
+for axis, scores in axis_scores.items():
+    print(f"{axis}: {sum(scores)/len(scores):.2%}")
 ```
-
-## Example: Calculate Custom Metrics
-
-Calculate metrics on your results:
-
-```python
-import sys
-from pathlib import Path
-
-# Add src directory to path if needed
-sys.path.insert(0, str(Path(__file__).parent / 'src' / 'calculate_metrics'))
-
-from calculate_F1_score import (
-    load_data, 
-    calculate_model_f1_scores,
-    calculate_average_f1_scores
-)
-
-# Define paths relative to project root
-base_dir = Path(__file__).parent
-ground_truth_path = base_dir / "data" / "processed_df" / "compiled_dataset.parquet"
-predicted_path = base_dir / "results" / "11_04" / "20251104_034416" / "processed_df" / "compiled_dataset.parquet"
-
-# Load ground truth and predictions
-ground_truth_df = load_data(ground_truth_path)
-predicted_df = load_data(predicted_path)
-
-# Calculate F1 scores
-f1_scores = calculate_model_f1_scores(
-    ground_truth_df, 
-    predicted_df,
-    binary=False  # Ternary evaluation
-)
-
-# Get averages
-avg_f1 = calculate_average_f1_scores(f1_scores)
-
-# Display results
-for model, score in avg_f1.items():
-    print(f"{model}: {score:.4f}")
-```
-
-**Note**: When running from `src/calculate_metrics/` directory, the scripts handle paths automatically.
 
 ## Troubleshooting
 
 ### API Rate Limits
 If you hit rate limits, reduce concurrency:
 ```python
-evaluator = RubricEvaluator(max_concurrent=5)  # Lower concurrency
+evaluator = RubricEvaluator(max_concurrent=5)
 ```
 
-### Missing PDFs
-If PDFs fail to download, place them manually in:
-```
-data/predownloaded_pdfs/<task_name>/
-├── gemini.pdf
-├── chatgpt.pdf
-└── perplexity.pdf
+### Missing Input Data
+Ensure `data/researchrubrics/processed_data.jsonl` exists:
+```bash
+ls data/researchrubrics/processed_data.jsonl
 ```
 
-### Memory Issues
-For large batches, process in smaller chunks:
-```python
-# Process first 10 tasks
-limited_df = df.head(10)
-results = await evaluate_batch(limited_df)
+### Missing Markdown Files
+Check that markdown files exist in `agent_responses/`:
+```bash
+ls agent_responses/*.md
+```
+
+### API Key Issues
+Verify `.env` file is in project root with correct key:
+```bash
+cat .env
+# Should show: LITELLM_API_KEY=your_actual_key
 ```
 
 ## Common Configurations
 
-### Using Custom API Endpoint
+### Using Custom Model
+
 ```python
 evaluator = RubricEvaluator(
-    api_key="your_key",
-    base_url="https://your-endpoint.com",
-    model="your-model"
+    model="litellm_proxy/gemini/gemini-2.5-pro-preview-06-05"  # Change model here
 )
 ```
 
-### Adjusting File Paths
-```python
-from pathlib import Path
+### Adjusting Concurrency
 
-# Set custom paths
-base_path = Path("/custom/path")
-ground_truth = base_path / "data" / "compiled_dataset.parquet"
-predicted = base_path / "results" / "compiled_dataset.parquet"
+```python
+# Conservative (for rate limit sensitive APIs)
+evaluator = RubricEvaluator(max_concurrent=5)
+
+# Aggressive (for higher throughput)
+evaluator = RubricEvaluator(max_concurrent=30)
 ```
 
-### Saving Intermediate Results
+### Custom Output Location
+
 ```python
-# Save after each task
-for task in tasks:
-    result = await evaluate_task_rubrics(
-        task_name=task,
-        save_results=True  # Save detailed results
-    )
+# In evaluate_reports_batch.py
+await evaluate_all_reports(
+    agent_responses_dir="agent_responses",
+    output_file="results/my_custom_results.jsonl"
+)
 ```
+
+## Expected Performance
+
+Typical performance metrics:
+- **Single rubric evaluation**: ~5-15 seconds (depends on document length)
+- **Batch processing**: 20 reports concurrently by default
+- **Token usage**: 3,000-10,000 tokens per rubric evaluation
+- **Cost**: ~$0.01-$0.05 per rubric evaluation (Gemini 2.5 Pro pricing)
 
 ## Next Steps
 
 - Read the full [README.md](README.md) for comprehensive documentation
-- Check [CONTRIBUTING.md](CONTRIBUTING.md) to contribute
-- Review the code in `src/` for implementation details
-- Explore example notebooks (if available)
+- Check [DATA_FORMAT.md](DATA_FORMAT.md) for data format details
+- Review [INSTALLATION.md](INSTALLATION.md) for detailed setup
+- See [FOLDER_STRUCTURE.md](FOLDER_STRUCTURE.md) for project organization
 
 ## Getting Help
 
-- Open an issue on GitHub
-- Check existing issues and discussions
-- Contact the maintainers
+- Check existing issues on GitHub
+- Open a new issue with your question
+- Include error messages and relevant code snippets
 
-Happy benchmarking! 🚀
+Happy evaluating! 🚀

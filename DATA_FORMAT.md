@@ -1,328 +1,275 @@
 # Data Format Specification
 
-This document describes the data formats used throughout the Deep Research Benchmarks pipeline.
+This document describes the data formats used throughout the Research Rubrics evaluation pipeline.
 
 ## Table of Contents
 
 - [Input Formats](#input-formats)
-  - [Raw CSV Format](#raw-csv-format)
-- [Intermediate Formats](#intermediate-formats)
-  - [Compiled Dataset](#compiled-dataset)
-  - [Rubric Format](#rubric-format)
+  - [Processed Data JSONL](#processed-data-jsonl)
+  - [Markdown Reports](#markdown-reports)
 - [Output Formats](#output-formats)
-  - [Evaluation Results](#evaluation-results)
-  - [Metrics Output](#metrics-output)
+  - [Evaluation Results JSONL](#evaluation-results-jsonl)
+  - [Compliance Scores](#compliance-scores)
 
 ## Input Formats
 
-### Raw CSV Format
+### Processed Data JSONL
 
-Raw evaluation CSV files should follow this structure:
+File: `data/researchrubrics/processed_data.jsonl`
+
+This file contains one JSON object per line, with each object representing a research task and its evaluation rubrics.
 
 #### Structure
 
-| Row | Column | Description |
-|-----|--------|-------------|
-| 0 | prompt | The original task prompt |
-| 1+ | title | Rubric criterion title |
-| 1+ | weight | Numerical weight (e.g., 1.0) |
-| 1+ | category | Rubric category (e.g., "Accuracy", "Completeness") |
-| 1+ | gemini_present | Ground truth for Gemini (Satisfied/Partially Satisfied/Not Satisfied) |
-| 1+ | chatgpt_present | Ground truth for ChatGPT |
-| 1+ | perplexity_present | Ground truth for Perplexity |
+Each line is a JSON object with the following fields:
 
-#### Special Rows
+| Field | Type | Description |
+|-------|------|-------------|
+| prompt | string | The research task/question given to the AI |
+| sample_id | string | Unique identifier for the task (used as markdown filename) |
+| domain | string | Domain category (e.g., "AI & ML", "Historical Analysis") |
+| conceptual_breadth | string | Task complexity: "Simple", "Moderate", "Complex" |
+| logical_nesting | string | Reasoning depth: "Simple", "Intermediate", "Complex" |
+| exploration | string | Research scope: "Low", "Medium", "High" |
+| rubrics | array | List of evaluation criteria (see Rubric Format below) |
 
-- **Row 0**: Task prompt
-- **Row 3**: Gemini PDF URL in `prompt` column
-- **Row 6**: ChatGPT PDF URL in `prompt` column
-- **Row 9**: Perplexity PDF URL in `prompt` column
+#### Rubric Format
+
+Each rubric in the `rubrics` array contains:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| criterion | string | The evaluation criterion description |
+| weight | float | Weight of this criterion (can be positive or negative) |
+| axis | string | Category (e.g., "Explicit Criteria", "Communication Quality") |
 
 #### Example
 
-```csv
-prompt,title,weight,category,gemini_present,chatgpt_present,perplexity_present
-"Analyze the impact of climate change...",,,,,
-,Data Sources,1.0,Accuracy,Satisfied,Satisfied,Partially Satisfied
-,Citation Quality,1.0,References,Satisfied,Not Satisfied,Satisfied
-https://example.com/gemini.pdf,,,,,
-,Methodology,1.0,Completeness,Partially Satisfied,Satisfied,Satisfied
-,Analysis Depth,1.0,Quality,Satisfied,Satisfied,Not Satisfied
-https://example.com/chatgpt.pdf,,,,,
-,Conclusion,1.0,Structure,Satisfied,Partially Satisfied,Satisfied
-,Visual Elements,0.5,Presentation,Not Satisfied,Satisfied,Satisfied
-https://example.com/perplexity.pdf,,,,,
-```
-
-## Intermediate Formats
-
-### Compiled Dataset
-
-After extraction, data is compiled into `compiled_dataset.csv`:
-
-#### Columns
-
-| Column | Type | Description |
-|--------|------|-------------|
-| csv_filename | string | Original CSV filename |
-| task_name | string | Unique task identifier (hash) |
-| prompt | string | Original task prompt |
-| rubrics | JSON string | Array of rubric objects |
-| rubrics_count | integer | Number of rubrics |
-| pdf_paths | JSON string | Paths to PDFs for each model |
-| final_presence | JSON string | Ground truth evaluations |
-
-#### Example Row
-
 ```json
 {
-  "csv_filename": "683a58c9a7e7fe4e7695846f_fixed.csv",
-  "task_name": "683a58c9a7e7fe4e7695846f",
-  "prompt": "Analyze the impact of climate change on polar bear populations...",
-  "rubrics": "[{\"title\": \"Data Sources\", \"weight\": 1.0, \"category\": \"Accuracy\", \"row_index\": 1}, ...]",
-  "rubrics_count": 15,
-  "pdf_paths": "{\"gemini_pdf\": {\"path\": \"data/PDFs/683.../gemini.pdf\", \"error\": null}, ...}",
-  "final_presence": "{\"gemini_present\": {\"values\": [\"Satisfied\", \"Partially Satisfied\", ...], \"null_count\": 0, \"total_count\": 15}, ...}"
+  "prompt": "Write a synthesis report on the applications of AI in drug discovery for a technical audience unfamiliar with biology...",
+  "sample_id": "6847465956a0f6376a605355",
+  "domain": "AI & ML",
+  "conceptual_breadth": "Moderate",
+  "logical_nesting": "Intermediate",
+  "exploration": "Medium",
+  "rubrics": [
+    {
+      "criterion": "The response describes at least one specific AI application for each drug-discovery stage...",
+      "weight": 5.0,
+      "axis": "Explicit Criteria"
+    },
+    {
+      "criterion": "The response provides brief (≤20 words) definitions for specialized terms...",
+      "weight": 5.0,
+      "axis": "Instruction Following"
+    },
+    {
+      "criterion": "The response uses deterministic language for speculative claims...",
+      "weight": -4.0,
+      "axis": "Implicit Criteria"
+    }
+  ]
 }
 ```
 
-### Rubric Format
+**Note**: Negative weights indicate penalty rubrics (failures that should NOT occur).
 
-Each rubric is a JSON object with the following structure:
+### Markdown Reports
 
-```json
-{
-  "title": "Data Sources",
-  "weight": 1.0,
-  "category": "Accuracy",
-  "row_index": 1
-}
+File location: `agent_responses/[sample_id].md`
+
+These are the AI-generated research reports to be evaluated. Each markdown file should:
+- Be named with its corresponding `sample_id` from `processed_data.jsonl`
+- Contain the complete text of the AI-generated research report
+- Be in markdown format (plain text with markdown formatting)
+
+#### Example Filename
+
+For a task with `sample_id: "6847465956a0f6376a605355"`, the markdown file should be:
+```
+agent_responses/6847465956a0f6376a605355.md
 ```
 
-**Fields**:
-- `title` (string): The rubric criterion description
-- `weight` (float): Weight for scoring (typically 1.0 or 0.5)
-- `category` (string): Category classification (e.g., "Accuracy", "Completeness", "Structure")
-- `row_index` (integer): Original row position in CSV
+#### Content Example
 
-### PDF Paths Format
+```markdown
+# AI Applications in Drug Discovery
 
-```json
-{
-  "gemini_pdf": {
-    "path": "data/PDFs/683a58c9a7e7fe4e7695846f/gemini.pdf",
-    "error": null
-  },
-  "chatgpt_pdf": {
-    "path": "data/PDFs/683a58c9a7e7fe4e7695846f/chatgpt.pdf",
-    "error": null
-  },
-  "perplexity_pdf": {
-    "path": "data/PDFs/683a58c9a7e7fe4e7695846f/perplexity.pdf",
-    "error": null
-  }
-}
+## Introduction
+
+Artificial Intelligence (AI) has revolutionized the drug discovery process...
+
+## Target Identification
+
+AI models such as Convolutional Neural Networks (CNNs) can analyze...
+
+## Conclusion
+
+The integration of AI into drug discovery pipelines represents...
 ```
-
-### Final Presence Format
-
-```json
-{
-  "gemini_present": {
-    "values": ["Satisfied", "Partially Satisfied", "Not Satisfied", ...],
-    "null_count": 0,
-    "total_count": 15
-  },
-  "chatgpt_present": {
-    "values": ["Satisfied", "Satisfied", "Not Satisfied", ...],
-    "null_count": 0,
-    "total_count": 15
-  },
-  "perplexity_present": {
-    "values": ["Not Satisfied", "Satisfied", "Satisfied", ...],
-    "null_count": 0,
-    "total_count": 15
-  }
-}
-```
-
-**Fields**:
-- `values` (array): List of verdicts in order of rubrics
-- `null_count` (integer): Number of missing/null evaluations
-- `total_count` (integer): Total number of rubrics
 
 ## Output Formats
 
-### Evaluation Results
+### Evaluation Results JSONL
 
-After LLM evaluation, results are saved with the same structure as compiled dataset, but with updated `final_presence` containing predicted values.
+File location: `results/batch_evaluation_YYYYMMDD_HHMMSS.jsonl`
 
-#### Individual Evaluation Record
+After evaluation, results are saved as JSONL with one evaluation record per line.
 
-During evaluation, each rubric-document pair generates:
+#### Structure
+
+Each line represents a single rubric evaluation:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| sample_id | string | Task identifier matching the markdown filename |
+| rubric_title | string | The rubric criterion that was evaluated |
+| verdict | string | "Satisfied" or "Not Satisfied" |
+| score | float | 1.0 for Satisfied, 0.0 for Not Satisfied |
+| confidence | float | Model's confidence (0.0 to 1.0) |
+| reasoning | string | Detailed explanation for the verdict |
+| tokens_used | integer | Number of tokens consumed |
+| cost | float | API cost for this evaluation (in USD) |
+| success | boolean | Whether evaluation completed successfully |
+| weight | float | Weight of this rubric from input data |
+
+#### Example
 
 ```json
 {
-  "task_name": "683a58c9a7e7fe4e7695846f",
-  "pdf": "gemini",
-  "rubric_title": "Data Sources",
-  "verdict": "Satisfied",
-  "score": 1.0,
-  "confidence": 0.95,
-  "reasoning": "The document cites 5 peer-reviewed sources...",
-  "tokens_used": 2453,
-  "cost": 0.0123,
-  "duration": 2.34,
+  "sample_id": "683a58c9a7e7fe4e7695846f",
+  "rubric_title": "The response ensures all acronyms are expanded...",
+  "verdict": "Not Satisfied",
+  "score": 0.0,
+  "confidence": 1.0,
+  "reasoning": "The document fails to meet the criterion because it does not expand any of the acronyms it uses (AMC, AIME, USA J MO, IMO)...",
+  "tokens_used": 4567,
+  "cost": 0.024739999999999998,
   "success": true,
-  "error": null
+  "weight": 4.0
 }
 ```
 
-### Metrics Output
+### Compliance Scores
 
-#### F1 Scores
-
-Console output format:
+Calculated from evaluation results using the formula:
 
 ```
-================================================================================
-MACRO F1 SCORE RESULTS
-================================================================================
-
-Average F1 Scores across 100 tasks:
-  Gemini      : 0.8542
-  Chatgpt     : 0.8123
-  Perplexity  : 0.7891
-
-Note: F1 scores calculated by comparing ground truth vs predicted presence lists
+Compliance Score = Σ(weight × score) / Σ(positive weights)
 ```
 
-#### Weighted Scores
+Where:
+- Only positive-weight rubrics are included in the denominator
+- Negative-weight rubrics (penalties) subtract from the numerator
+- Final score is typically between 0.0 and 1.0 (but can be negative if penalties exceed gains)
+
+#### Console Output Example
 
 ```
-Average Scores across 100 rows:
-Gemini:     0.8234
-ChatGPT:    0.7956
-Perplexity: 0.7723
-```
+Compliance Scores:
+==================
+Sample 683a58c9a7e7fe4e7695846f: 0.65 (65%)
+Sample 683a58c9a7e7fe4e7695848b: 0.82 (82%)
+Sample 683a58c9a7e7fe4e7695848e: 0.71 (71%)
 
-#### Failure Breakdown
-
-```
-================================================================================
-FAILURE RATE BREAKDOWN BY CATEGORY
-================================================================================
-
-MODEL: GEMINI
---------------------------------------------------------------------------------
-Tasks with failures: 45 / 100
-Total failures across all tasks: 234
-
-Category                                  Avg Ratio    Agg Ratio    Tasks
----------------------------------------- ------------ ------------ --------
-Accuracy                                     0.3456       0.3512       32
-Completeness                                 0.2789       0.2845       28
-Structure                                    0.1923       0.1876       21
-References                                   0.1234       0.1198       15
-...
+Average Compliance: 0.73 (73%)
 ```
 
 ## Validation Rules
 
 ### Required Fields
 
-All datasets must include:
-- Non-empty `task_name`
-- Valid `prompt` text
-- At least one rubric
-- PDF paths for all three models
-- Complete presence data (null_count = 0)
+#### Input Data (processed_data.jsonl)
+Each JSON object must include:
+- Non-empty `prompt` string
+- Valid `sample_id` string  
+- Non-empty `rubrics` array with at least one rubric
+- Each rubric must have `criterion`, `weight`, and `axis` fields
+
+#### Markdown Reports
+- File must exist in `agent_responses/` directory
+- Filename must match a `sample_id` from `processed_data.jsonl`
+- File must contain readable markdown text
 
 ### Value Constraints
 
 - **Verdict values**: Must be one of:
-  - Ternary: "Satisfied", "Partially Satisfied", "Not Satisfied"
-  - Binary: "Satisfied", "Not Satisfied"
-- **Weights**: Positive float values (typically 0.5 or 1.0)
+  - "Satisfied"
+  - "Not Satisfied"
+- **Weights**: Float values (can be positive or negative)
+  - Positive weights: Typical values are 1.0 to 5.0
+  - Negative weights: Penalties, typically -1.0 to -5.0
 - **Scores**: 
-  - Ternary: 0.0, 0.5, or 1.0
   - Binary: 0.0 or 1.0
 - **Confidence**: Float between 0.0 and 1.0
 
 ### Data Integrity
 
-- Number of verdicts must match number of rubrics
-- All models must have the same number of evaluations
-- PDF files must exist at specified paths
+- Each markdown file in `agent_responses/` should have a corresponding entry in `processed_data.jsonl`
+- Number of evaluation results should match the number of rubrics for each sample
+- All JSON lines must be valid and parseable
 
 ## File Formats
 
-### CSV Files
+### JSONL Files
 
 - Encoding: UTF-8
-- Delimiter: Comma (`,`)
-- Quoting: Minimal (quote fields containing commas)
-- Line endings: Unix (LF) or Windows (CRLF)
+- One JSON object per line
+- Each line must be valid JSON
+- Line endings: Unix (LF) preferred, Windows (CRLF) acceptable
+- No trailing commas
+- Use double quotes for all strings
 
-### Parquet Files
+### Markdown Files
 
-- Compression: Snappy (default)
-- Schema: Inferred from pandas DataFrame
-- Complex types: Stored as JSON strings
-
-### JSON Fields
-
-Within CSV/Parquet:
-- JSON strings must be valid and parseable
-- Use double quotes for JSON keys and string values
-- Arrays and objects properly nested
+- Encoding: UTF-8
+- Standard markdown syntax
+- Line endings: Unix (LF) preferred, Windows (CRLF) acceptable
 
 ## Example Complete Dataset
 
-See `examples/sample_dataset.csv` for a complete example with multiple tasks and all required fields.
+See the actual `data/researchrubrics/processed_data.jsonl` file for complete examples with multiple tasks and all required fields.
 
-## Converting Between Formats
+## Working with JSONL
 
-### CSV to Parquet
+### Reading JSONL in Python
 
 ```python
-import pandas as pd
+import json
 
-df = pd.read_csv('compiled_dataset.csv')
-df.to_parquet('compiled_dataset.parquet', index=False)
+# Read all entries
+data = []
+with open('data/researchrubrics/processed_data.jsonl', 'r') as f:
+    for line in f:
+        data.append(json.loads(line))
+
+# Access first task
+first_task = data[0]
+print(f"Sample ID: {first_task['sample_id']}")
+print(f"Number of rubrics: {len(first_task['rubrics'])}")
 ```
 
-### Extracting JSON Fields
+### Reading Evaluation Results
 
 ```python
 import json
 import pandas as pd
 
-df = pd.read_csv('compiled_dataset.csv')
+# Read evaluation results into a DataFrame
+results = []
+with open('results/batch_evaluation_20251113_093457.jsonl', 'r') as f:
+    for line in f:
+        results.append(json.loads(line))
 
-# Parse rubrics
-df['rubrics_parsed'] = df['rubrics'].apply(json.loads)
+df = pd.DataFrame(results)
 
-# Parse presence data
-df['presence_parsed'] = df['final_presence'].apply(json.loads)
-```
-
-## Schema Validation
-
-Use this JSON schema to validate compiled datasets:
-
-```json
-{
-  "type": "object",
-  "required": ["task_name", "prompt", "rubrics", "final_presence"],
-  "properties": {
-    "task_name": {"type": "string", "minLength": 1},
-    "prompt": {"type": "string", "minLength": 1},
-    "rubrics": {"type": "string"},
-    "rubrics_count": {"type": "integer", "minimum": 1},
-    "final_presence": {"type": "string"}
-  }
-}
+# Group by sample_id to get per-task metrics
+by_sample = df.groupby('sample_id').agg({
+    'score': 'mean',
+    'cost': 'sum',
+    'tokens_used': 'sum'
+})
 ```
 
 ## Questions?

@@ -1,339 +1,313 @@
-# Deep Research Benchmarks - Complete Setup Guide
+# Research Rubrics - Complete Setup Guide
 
-This guide will walk you through setting up your Deep Research Benchmarks release from scratch.
+This guide will walk you through setting up Research Rubrics from scratch.
 
-## 📦 What You Have
+## 📦 Prerequisites
 
-Your release package contains **21 files**:
-
-### 📄 Documentation (9 files)
-1. **README.md** - Main documentation
-2. **QUICKSTART.md** - Quick start guide  
-3. **INSTALLATION.md** - Installation instructions
-4. **DATA_FORMAT.md** - Data format specifications
-5. **FOLDER_STRUCTURE.md** - Directory organization guide
-6. **FILE_MANIFEST.md** - File index
-7. **CONTRIBUTING.md** - Contribution guidelines
-8. **CHANGELOG.md** - Version history
-9. **RELEASE_CHECKLIST.md** - Pre-publication checklist
-
-### ⚙️ Configuration (5 files)
-10. **requirements.txt** - Python dependencies
-11. **setup.py** - Package configuration
-12. **.env.example** - Environment variables template
-13. **.gitignore** - Git exclusions
-14. **LICENSE** - MIT License
-
-### 📝 Other (2 files)
-15. **CITATION.bib** - BibTeX citation
-16. **setup_structure.sh** - Unix setup script
-17. **setup_structure.bat** - Windows setup script
-
-### 🎯 Prompts (4 files in prompts/ directory)
-18-19. **prompts/binary/** - Binary evaluation prompts (2 files)
-20-21. **prompts/ternary/** - Ternary evaluation prompts (2 files)
+Before you begin, ensure you have:
+- Python 3.8 or higher installed
+- Git installed (for cloning the repository)
+- A LiteLLM API key (for accessing Gemini 2.5 Pro)
+- Command line access (Terminal/PowerShell/Command Prompt)
 
 ## 🚀 Complete Setup Instructions
 
-### Step 1: Organize Your Files
-
-Create your project directory structure:
+### Step 1: Clone the Repository
 
 ```bash
-# Create project directory
-mkdir -p public_release_experiments
-cd public_release_experiments
-
-# Move all documentation files to root
-mv /path/to/README.md .
-mv /path/to/QUICKSTART.md .
-mv /path/to/INSTALLATION.md .
-mv /path/to/DATA_FORMAT.md .
-mv /path/to/FOLDER_STRUCTURE.md .
-mv /path/to/FILE_MANIFEST.md .
-mv /path/to/CONTRIBUTING.md .
-mv /path/to/CHANGELOG.md .
-mv /path/to/RELEASE_CHECKLIST.md .
-
-# Move configuration files to root
-mv /path/to/requirements.txt .
-mv /path/to/setup.py .
-mv /path/to/.env.example .
-mv /path/to/.gitignore .
-mv /path/to/LICENSE .
-mv /path/to/CITATION.bib .
-
-# Move setup scripts to root
-mv /path/to/setup_structure.sh .
-mv /path/to/setup_structure.bat .
+# Clone the repository
+git clone <repository-url>
+cd researchrubrics
 ```
 
-### Step 2: Run Setup Script
-
-Run the appropriate setup script for your OS:
-
-**Unix/Linux/macOS:**
-```bash
-chmod +x setup_structure.sh
-./setup_structure.sh
-```
-
-**Windows:**
-```batch
-setup_structure.bat
-```
-
-This creates all necessary directories:
-- `src/extract_rubrics/`
-- `src/evaluate_rubrics/prompts/binary/` and `prompts/ternary/`
-- `src/calculate_metrics/`
-- `data/raw_csvs/`, `data/processed_df/`, `data/PDFs/`, `data/predownloaded_pdfs/`
-- `results/`, `cache/`, `tests/`
-
-### Step 3: Place Your Source Code
-
-Copy your existing Python files to the correct locations:
+### Step 2: Create Virtual Environment (Recommended)
 
 ```bash
-# Extract rubrics module
-cp /path/to/your/extract_rubrics_batch.py src/extract_rubrics/
-cp /path/to/your/extract_rubrics_markitdown_onetask.py src/extract_rubrics/
+# Create a virtual environment
+python -m venv venv
 
-# Evaluate rubrics module  
-cp /path/to/your/evaluate_rubrics_batch.py src/evaluate_rubrics/
-cp /path/to/your/evaluate_rubrics_markitdown_onetask.py src/evaluate_rubrics/
-
-# Calculate metrics module
-cp /path/to/your/calculate_F1_score.py src/calculate_metrics/
-cp /path/to/your/calculate_final_score.py src/calculate_metrics/
-cp /path/to/your/calculate_failure_breakdown.py src/calculate_metrics/
+# Activate it
+# On Unix/macOS:
+source venv/bin/activate
+# On Windows:
+.\venv\Scripts\activate
 ```
 
-### Step 4: Place Prompt Files
-
-Move the prompt files to their correct locations:
+### Step 3: Install Dependencies
 
 ```bash
-# Binary prompts
-mv prompts/binary/system_prompt.txt src/evaluate_rubrics/prompts/binary/
-mv prompts/binary/user_prompt_template.txt src/evaluate_rubrics/prompts/binary/
-
-# Ternary prompts
-mv prompts/ternary/system_prompt.txt src/evaluate_rubrics/prompts/ternary/
-mv prompts/ternary/user_prompt_template.txt src/evaluate_rubrics/prompts/ternary/
-
-# Remove the now-empty prompts directory from root
-rm -rf prompts/
-```
-
-### Step 5: Configure Environment
-
-```bash
-# Create your .env file
-cp .env.example .env
-
-# Edit .env and add your API key
-nano .env  # or vim .env, or code .env
-# Add: OPENAI_API_KEY=your_actual_api_key_here
-```
-
-### Step 6: Install Dependencies
-
-```bash
-# Install Python dependencies
+# Install all required packages
 pip install -r requirements.txt
 
 # Verify installation
-python -c "import pandas, litellm, markitdown, sklearn; print('✓ All dependencies installed')"
+python -c "import pandas, litellm, tqdm; print('✓ All dependencies installed')"
 ```
 
-### Step 7: Verify Setup
+### Step 4: Configure API Credentials
 
 ```bash
-# Check folder structure
-tree -L 3 -I '__pycache__|*.pyc'
+# Create .env file with your API key
+echo "LITELLM_API_KEY=your_actual_api_key_here" > .env
 
-# Or use ls to verify key directories
+# Verify .env file was created
+cat .env
+```
+
+**Important**: Replace `your_actual_api_key_here` with your real API key!
+
+### Step 5: Verify Directory Structure
+
+```bash
+# Check that all necessary directories exist
 ls -d src/*/
-ls -d data/*/
+ls -d data/
+ls -d agent_responses/
+ls -d results/
 ```
 
 Expected output:
 ```
-src/extract_rubrics/
-src/evaluate_rubrics/
 src/calculate_metrics/
-data/raw_csvs/
-data/processed_df/
-data/PDFs/
-data/predownloaded_pdfs/
+src/evaluate_rubrics/
+src/prompts/
+data/
+agent_responses/
+results/
 ```
 
-### Step 8: Test Your Setup
+### Step 6: Prepare Input Data
+
+Ensure you have:
+
+1. **Rubrics data file**: `data/researchrubrics/processed_data.jsonl`
+2. **Markdown reports**: Files in `agent_responses/` directory
 
 ```bash
-# Test imports
-cd src/extract_rubrics
-python -c "from extract_rubrics_markitdown_onetask import RubricExtractor; print('✓ Extract module OK')"
+# Check data file exists
+ls data/researchrubrics/processed_data.jsonl
 
-cd ../evaluate_rubrics  
-python -c "from evaluate_rubrics_markitdown_onetask import RubricEvaluator; print('✓ Evaluate module OK')"
+# Check markdown files exist
+ls agent_responses/*.md
+```
 
+### Step 7: Test the Installation
+
+```bash
+# Test the evaluation module
+cd src/evaluate_rubrics
+python -c "from evaluate_single_report import RubricEvaluator; print('✓ Evaluate module OK')"
+
+# Test the metrics module
 cd ../calculate_metrics
-python -c "from calculate_F1_score import calculate_macro_f1_per_task; print('✓ Metrics module OK')"
+python -c "from calculate_compliance_score import calculate_compliance_score; print('✓ Metrics module OK')"
 
-cd ../..  # Back to project root
+# Return to project root
+cd ../..
 ```
 
-## 📂 Final Folder Structure
+### Step 8: Run a Test Evaluation (Optional)
 
-After setup, your directory should look like this:
-
-```
-public_release_experiments/
-├── README.md
-├── QUICKSTART.md
-├── INSTALLATION.md
-├── DATA_FORMAT.md
-├── FOLDER_STRUCTURE.md
-├── FILE_MANIFEST.md
-├── CONTRIBUTING.md
-├── CHANGELOG.md
-├── RELEASE_CHECKLIST.md
-├── LICENSE
-├── CITATION.bib
-├── requirements.txt
-├── setup.py
-├── .env.example
-├── .env (your API key - DO NOT COMMIT)
-├── .gitignore
-├── setup_structure.sh
-├── setup_structure.bat
-├── src/
-│   ├── __init__.py
-│   ├── extract_rubrics/
-│   │   ├── __init__.py
-│   │   ├── extract_rubrics_batch.py
-│   │   └── extract_rubrics_markitdown_onetask.py
-│   ├── evaluate_rubrics/
-│   │   ├── __init__.py
-│   │   ├── evaluate_rubrics_batch.py
-│   │   ├── evaluate_rubrics_markitdown_onetask.py
-│   │   └── prompts/
-│   │       ├── binary/
-│   │       │   ├── system_prompt.txt
-│   │       │   └── user_prompt_template.txt
-│   │       └── ternary/
-│   │           ├── system_prompt.txt
-│   │           └── user_prompt_template.txt
-│   └── calculate_metrics/
-│       ├── __init__.py
-│       ├── calculate_F1_score.py
-│       ├── calculate_final_score.py
-│       └── calculate_failure_breakdown.py
-├── data/
-│   ├── raw_csvs/
-│   ├── processed_df/
-│   ├── PDFs/
-│   └── predownloaded_pdfs/
-├── results/
-├── cache/
-└── tests/
+```bash
+# Run evaluation on all reports (if you have data ready)
+cd src/evaluate_rubrics
+python evaluate_reports_batch.py
 ```
 
-## 🎯 Running Your First Workflow
+This will evaluate all markdown files in `agent_responses/` and save results to `results/`.
+
+## 📊 Understanding the Data Flow
+
+```
+Input Data:
+  data/researchrubrics/processed_data.jsonl  (rubrics + metadata)
+  agent_responses/*.md                       (markdown reports)
+           ↓
+       Evaluation
+    (evaluate_reports_batch.py)
+           ↓
+       Results:
+  results/batch_evaluation_YYYYMMDD_HHMMSS.jsonl
+           ↓
+       Metrics:
+    (calculate_compliance_score.py)
+           ↓
+       Compliance Scores
+```
+
+## 🎯 Quick Start After Setup
 
 Once setup is complete:
 
 ```bash
-# 1. Place your CSV files in data/raw_csvs/
-# (You need to do this manually with your data)
+# 1. Evaluate all reports
+cd src/evaluate_rubrics
+python evaluate_reports_batch.py
 
-# 2. Extract rubrics
-cd src/extract_rubrics
-python extract_rubrics_batch.py
-
-# 3. Evaluate rubrics
-cd ../evaluate_rubrics
-python evaluate_rubrics_batch.py
-
-# 4. Calculate metrics
+# 2. Calculate compliance scores
 cd ../calculate_metrics
-python calculate_F1_score.py
-python calculate_final_score.py
-python calculate_failure_breakdown.py
+python calculate_compliance_score.py
 ```
 
-## 📋 Before Publishing
+## 🔧 Customization Options
 
-Before you push to GitHub, complete the **RELEASE_CHECKLIST.md**:
+### Adjusting Concurrency
 
-1. **Update placeholders**:
-   - Replace `[Authors]` with actual names
-   - Replace `<repository-url>` with your GitHub URL
-   - Replace `[username]` in links
-   - Update contact information
+Edit `src/evaluate_rubrics/evaluate_single_report.py`:
 
-2. **Review security**:
-   - Remove any API keys from code
-   - Verify `.env` is in `.gitignore`
-   - Check for sensitive information
+```python
+# Find this line (around line 78)
+def __init__(self, api_key: str = None, base_url: str = None, 
+             model: str = "litellm_proxy/gemini/gemini-2.5-pro-preview-06-05", 
+             max_concurrent: int = 20):  # Change this number
 
-3. **Test everything**:
-   - Fresh install in new environment
-   - Run complete workflow
-   - Verify all documentation
-
-4. **Initialize Git**:
-```bash
-git init
-git add .
-git commit -m "Initial release: Deep Research Benchmarks v1.0.0"
-git remote add origin <your-github-url>
-git push -u origin main
+# Examples:
+# max_concurrent=5   # Conservative (avoid rate limits)
+# max_concurrent=10  # Moderate
+# max_concurrent=30  # Aggressive (higher throughput)
 ```
 
-## 📖 Documentation Overview
+### Using a Different Model
 
-- **Start here**: README.md
-- **Quick examples**: QUICKSTART.md  
-- **Installation help**: INSTALLATION.md
-- **Data formats**: DATA_FORMAT.md
-- **File organization**: FOLDER_STRUCTURE.md
-- **Before release**: RELEASE_CHECKLIST.md
+In the same file, change the `model` parameter:
+
+```python
+model: str = "litellm_proxy/gemini/gemini-2.5-pro-preview-06-05"  # Change this
+```
+
+### Custom Output Location
+
+In `src/evaluate_rubrics/evaluate_reports_batch.py`, modify:
+
+```python
+await evaluate_all_reports(
+    agent_responses_dir="agent_responses",  # Change input directory
+    output_file="results/my_custom_results.jsonl"  # Change output file
+)
+```
+
+## 📋 Verification Checklist
+
+After setup, verify:
+
+- [ ] Python 3.8+ installed (`python --version`)
+- [ ] All dependencies installed (`pip list | grep -E "pandas|litellm|tqdm"`)
+- [ ] `.env` file created with LITELLM_API_KEY
+- [ ] `data/researchrubrics/processed_data.jsonl` exists
+- [ ] Markdown files in `agent_responses/`
+- [ ] Source code files in `src/` directory
+- [ ] Prompt templates in `src/prompts/`
+- [ ] Test imports work (Step 7)
 
 ## 🆘 Troubleshooting
 
-### "Module not found" errors
-**Solution**: Make sure you're running scripts from their directories or add to Python path.
+### Issue: "No module named 'litellm'"
 
-### "Can't find .env" errors  
-**Solution**: Ensure `.env` is in project root (`public_release_experiments/.env`), not in `src/`.
+**Solution**: Install dependencies
+```bash
+pip install -r requirements.txt
+```
 
-### Prompt files not found
-**Solution**: Verify prompts are in `src/evaluate_rubrics/prompts/binary/` and `.../ternary/`, not in project root.
+### Issue: "FileNotFoundError: processed_data.jsonl"
 
-### Import errors between modules
-**Solution**: `__init__.py` files should be present in all `src/` subdirectories.
+**Solution**: Ensure data file exists in the correct location
+```bash
+ls data/researchrubrics/processed_data.jsonl
+```
+
+If missing, obtain the data file from the appropriate source.
+
+### Issue: "No markdown files found"
+
+**Solution**: Add markdown files to `agent_responses/`
+```bash
+# Files should be named with sample IDs
+# Example: 683a58c9a7e7fe4e7695846f.md
+```
+
+### Issue: "API key not found"
+
+**Solution**: Verify `.env` file
+```bash
+# Check .env exists
+ls .env
+
+# Check contents
+cat .env
+
+# Should contain: LITELLM_API_KEY=your_key_here
+```
+
+### Issue: Rate limit errors
+
+**Solution**: Reduce concurrency
+```python
+# In evaluate_single_report.py
+evaluator = RubricEvaluator(max_concurrent=5)
+```
+
+## 🔄 Updating the Code
+
+To update to the latest version:
+
+```bash
+# Pull latest changes
+git pull origin main
+
+# Update dependencies
+pip install --upgrade -r requirements.txt
+```
+
+## 📖 Next Steps
+
+Now that setup is complete:
+
+1. **Read Documentation**:
+   - [README.md](README.md) - Project overview
+   - [QUICKSTART.md](QUICKSTART.md) - Quick examples
+   - [DATA_FORMAT.md](DATA_FORMAT.md) - Data format details
+
+2. **Run Evaluations**:
+   - Start with a small batch to test
+   - Monitor API costs and token usage
+   - Adjust concurrency based on rate limits
+
+3. **Analyze Results**:
+   - Review evaluation results in `results/`
+   - Calculate compliance scores
+   - Identify patterns in rubric performance
+
+## 💡 Tips for Success
+
+1. **Start Small**: Test with 1-2 markdown files before processing large batches
+2. **Monitor Costs**: Check token usage and API costs regularly
+3. **Adjust Concurrency**: Balance between speed and rate limits
+4. **Save Results**: Keep evaluation results for later analysis
+5. **Version Control**: Don't commit `.env` file or results to Git
+
+## 📞 Getting Help
+
+If you need assistance:
+
+1. Check the troubleshooting section above
+2. Review [INSTALLATION.md](INSTALLATION.md) for detailed setup help
+3. Check existing GitHub issues
+4. Open a new issue with:
+   - Your setup (OS, Python version)
+   - Error message (full traceback)
+   - Steps to reproduce
 
 ## ✅ Setup Complete!
 
-Your Deep Research Benchmarks codebase is now ready for:
-- ✅ Development and testing
-- ✅ Running experiments
-- ✅ Publishing to GitHub
-- ✅ Sharing with collaborators
-- ✅ Paper submission
+Once all checks pass, you're ready to:
+- ✅ Evaluate markdown reports against rubrics
+- ✅ Calculate compliance scores
+- ✅ Analyze evaluation results
+- ✅ Customize the evaluation pipeline
 
-## 📞 Need Help?
-
-- Check **INSTALLATION.md** for detailed installation troubleshooting
-- Review **FOLDER_STRUCTURE.md** for directory organization
-- See **QUICKSTART.md** for usage examples
-- Consult **RELEASE_CHECKLIST.md** before publishing
+**Happy evaluating! 🚀**
 
 ---
 
 **Setup Guide Version**: 1.0  
-**Last Updated**: 2025-01-XX  
+**Last Updated**: 2025-11-13  
 **Estimated Setup Time**: 10-15 minutes

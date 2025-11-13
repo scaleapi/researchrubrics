@@ -1,6 +1,6 @@
 # Installation Guide
 
-Detailed installation instructions for the Deep Research Benchmarks codebase.
+Detailed installation instructions for the Research Rubrics codebase.
 
 ## System Requirements
 
@@ -8,7 +8,7 @@ Detailed installation instructions for the Deep Research Benchmarks codebase.
 - Python 3.8 or higher
 - 4 GB RAM
 - 2 GB disk space (for code and dependencies)
-- Internet connection (for API calls and PDF downloads)
+- Internet connection (for API calls)
 
 ### Recommended Requirements
 - Python 3.10+
@@ -23,21 +23,21 @@ Detailed installation instructions for the Deep Research Benchmarks codebase.
 ```bash
 # Clone the repository
 git clone <repository-url>
-cd public_release_experiments
+cd researchrubrics
 
 # Install using pip
 pip install -r requirements.txt
 
 # Verify installation
-python -c "import pandas, litellm, markitdown; print('Installation successful!')"
+python -c "import pandas, litellm, tqdm; print('Installation successful!')"
 ```
 
 ### Method 2: conda environment
 
 ```bash
 # Create conda environment
-conda create -n deep-research python=3.10
-conda activate deep-research
+conda create -n researchrubrics python=3.10
+conda activate researchrubrics
 
 # Install dependencies
 pip install -r requirements.txt
@@ -66,66 +66,36 @@ For contributors who want to modify the code:
 ```bash
 # Clone repository
 git clone <repository-url>
-cd public_release_experiments
+cd researchrubrics
 
 # Install in editable mode with dev dependencies
 pip install -e .
-pip install pytest pytest-asyncio black flake8
+pip install pytest pytest-asyncio
 ```
 
 ## Dependency Details
 
 ### Core Dependencies
 
-#### pandas (>=1.3.0)
+#### pandas (>=2.0.0)
 Data manipulation and analysis
 ```bash
 pip install pandas
 ```
 
-#### numpy (>=1.20.0)
-Numerical computing
-```bash
-pip install numpy
-```
-
 #### litellm (>=1.0.0)
-LLM API client for multiple providers
+LLM API client for accessing Gemini 2.5 Pro
 ```bash
 pip install litellm
 ```
 
-#### markitdown (>=0.1.0)
-PDF to Markdown conversion
-```bash
-pip install markitdown
-```
-
-#### PyPDF2 (>=3.0.0)
-Fallback PDF text extraction
-```bash
-pip install PyPDF2
-```
-
-#### scikit-learn (>=1.0.0)
-Machine learning metrics
-```bash
-pip install scikit-learn
-```
-
 #### tqdm (>=4.60.0)
-Progress bars
+Progress bars for batch processing
 ```bash
 pip install tqdm
 ```
 
 ### Optional Dependencies
-
-#### pyarrow (>=10.0.0)
-Parquet file support (recommended)
-```bash
-pip install pyarrow
-```
 
 #### pytest and pytest-asyncio
 For running tests
@@ -133,64 +103,47 @@ For running tests
 pip install pytest pytest-asyncio
 ```
 
-#### black and flake8
-Code formatting and linting
-```bash
-pip install black flake8
-```
-
 ## Configuration
 
 ### 1. API Key Setup
 
-Create a `.env` file from the template:
+Create a `.env` file in the project root:
 
 ```bash
-cp .env.example .env
+# From project root
+echo "LITELLM_API_KEY=your_api_key_here" > .env
 ```
 
-Edit `.env` and add your API key:
-
+Or manually create `.env`:
 ```bash
-# Open in your preferred editor
 nano .env
-# or
-vim .env
-# or
-code .env
+# Add: LITELLM_API_KEY=your_api_key_here
 ```
 
-Add your API key:
-```
-OPENAI_API_KEY=sk-your-api-key-here
-```
+### 2. Verify API Key
 
-### 2. Custom API Endpoint (Optional)
+```python
+import os
+from pathlib import Path
 
-If using a custom LiteLLM proxy or alternative endpoint:
-
-```
-OPENAI_API_KEY=your_key
-API_BASE_URL=https://your-endpoint.com
-```
-
-### 3. Model Configuration (Optional)
-
-```
-MODEL_NAME=gpt-5
-MAX_CONCURRENT_REQUESTS=20
-BINARY_EVALUATION=False
+# Load .env file
+env_file = Path('.env')
+if env_file.exists():
+    with open(env_file) as f:
+        for line in f:
+            if line.startswith('LITELLM_API_KEY='):
+                print('API key configured ✓')
+else:
+    print('No .env file found - create one with LITELLM_API_KEY')
 ```
 
 ## Directory Structure Setup
 
-The installation should create these directories automatically, but you can create them manually if needed:
+The installation should create these directories automatically if they don't exist, but you can create them manually if needed:
 
 ```bash
-mkdir -p data/raw_csvs
-mkdir -p data/processed_df
-mkdir -p data/PDFs
-mkdir -p data/predownloaded_pdfs
+mkdir -p data/researchrubrics
+mkdir -p agent_responses
 mkdir -p results
 mkdir -p cache
 ```
@@ -200,48 +153,40 @@ mkdir -p cache
 ### Test Basic Functionality
 
 ```bash
-# Test extract module (from project root)
-python -c "import sys; sys.path.insert(0, 'src/extract_rubrics'); from extract_rubrics_markitdown_onetask import RubricExtractor; print('Extract module OK')"
-
 # Test evaluate module (from project root)
-python -c "import sys; sys.path.insert(0, 'src/evaluate_rubrics'); from evaluate_rubrics_markitdown_onetask import RubricEvaluator; print('Evaluate module OK')"
+cd src/evaluate_rubrics
+python -c "from evaluate_single_report import RubricEvaluator; print('Evaluate module OK')"
 
-# Test metrics module (from project root)
-python -c "import sys; sys.path.insert(0, 'src/calculate_metrics'); from calculate_F1_score import calculate_macro_f1_per_task; print('Metrics module OK')"
-```
-
-Or run from their directories:
-
-```bash
-cd src/extract_rubrics
-python -c "from extract_rubrics_markitdown_onetask import RubricExtractor; print('Extract module OK')"
-
-cd ../evaluate_rubrics
-python -c "from evaluate_rubrics_markitdown_onetask import RubricEvaluator; print('Evaluate module OK')"
-
+# Test metrics module
 cd ../calculate_metrics
-python -c "from calculate_F1_score import calculate_macro_f1_per_task; print('Metrics module OK')"
+python -c "from calculate_compliance_score import calculate_compliance_score; print('Metrics module OK')"
+
+cd ../..  # Back to project root
 ```
 
 ### Test API Connection
 
-```bash
-python -c "
+```python
 import os
-from dotenv import load_dotenv
-load_dotenv()
-api_key = os.getenv('OPENAI_API_KEY')
-if api_key and api_key != 'your_api_key_here':
-    print('API key configured ✓')
-else:
-    print('API key not configured - edit .env file')
-"
-```
+from pathlib import Path
 
-### Run Test Suite (if available)
+# Try to load API key
+env_file = Path('.env')
+if not env_file.exists():
+    print('ERROR: .env file not found')
+    exit(1)
 
-```bash
-pytest tests/
+with open(env_file) as f:
+    for line in f:
+        if 'LITELLM_API_KEY=' in line:
+            key = line.split('=')[1].strip()
+            if key and key != 'your_api_key_here':
+                print('✓ API key configured')
+            else:
+                print('ERROR: API key not set in .env file')
+            break
+    else:
+        print('ERROR: LITELLM_API_KEY not found in .env file')
 ```
 
 ## Platform-Specific Instructions
@@ -284,7 +229,7 @@ pip3 install -r requirements.txt
 # Install Python from python.org or Microsoft Store
 # Ensure pip is included in the installation
 
-# Open PowerShell or Command Prompt as Administrator (if needed)
+# Open PowerShell or Command Prompt
 
 # Follow standard installation steps
 pip install -r requirements.txt
@@ -293,8 +238,7 @@ pip install -r requirements.txt
 #### Windows-Specific Notes
 
 - Use backslashes (`\`) in paths or use raw strings in Python
-- Some packages may require Microsoft C++ Build Tools
-- Download from: https://visualstudio.microsoft.com/visual-cpp-build-tools/
+- Ensure Python is added to PATH during installation
 
 ## Troubleshooting
 
@@ -336,34 +280,25 @@ pip install --upgrade pip
 pip install --trusted-host pypi.org --trusted-host pypi.python.org -r requirements.txt
 ```
 
-### Issue: markitdown installation fails
-
-**Solution**: Install system dependencies
-```bash
-# macOS
-brew install poppler
-
-# Ubuntu/Debian
-sudo apt-get install poppler-utils
-
-# Then retry
-pip install markitdown
-```
-
 ### Issue: Can't find .env file
 
-**Solution**: Ensure .env is in the project root (public_release_experiments/)
+**Solution**: Ensure .env is in the project root
 ```bash
 # From project root
-cd public_release_experiments
 ls -la .env
 
-# If missing, create from template
-cp .env.example .env
-# Edit and add your OPENAI_API_KEY
+# If missing, create it
+echo "LITELLM_API_KEY=your_api_key_here" > .env
 ```
 
-**Note**: The evaluation scripts look for `.env` in the project root (`public_release_experiments/.env`), not in the script directory. The code automatically searches up the directory tree from `src/evaluate_rubrics/` to find it.
+**Note**: The evaluation scripts look for `.env` in the project root (`researchrubrics/.env`), not in the script directory.
+
+### Issue: litellm import error
+
+**Solution**: Ensure litellm is installed with correct version
+```bash
+pip install --upgrade litellm
+```
 
 ## Upgrading
 
@@ -394,21 +329,6 @@ rm -rf venv/
 rm -rf conda_env/
 ```
 
-## Docker Installation (Alternative)
-
-For a containerized installation (if Dockerfile is provided):
-
-```bash
-# Build Docker image
-docker build -t deep-research-benchmarks .
-
-# Run container
-docker run -v $(pwd)/data:/app/data \
-           -v $(pwd)/results:/app/results \
-           -e OPENAI_API_KEY=your_key \
-           deep-research-benchmarks
-```
-
 ## Next Steps
 
 After successful installation:
@@ -416,7 +336,7 @@ After successful installation:
 1. Review [QUICKSTART.md](QUICKSTART.md) for usage examples
 2. Read [README.md](README.md) for comprehensive documentation
 3. Check [DATA_FORMAT.md](DATA_FORMAT.md) for data specifications
-4. Run the example workflow to verify everything works
+4. Follow [SETUP_GUIDE.md](SETUP_GUIDE.md) for complete setup
 
 ## Getting Help
 
@@ -436,7 +356,7 @@ Current version: 1.0.0
 
 To check installed package versions:
 ```bash
-pip list | grep -E "pandas|litellm|markitdown|scikit-learn"
+pip list | grep -E "pandas|litellm|tqdm"
 ```
 
 ## License

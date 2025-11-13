@@ -1,6 +1,6 @@
 # File Manifest
 
-This document lists all files included in the Deep Research Benchmarks release and their purposes.
+This document lists all files included in the Research Rubrics release and their purposes.
 
 ## 📋 Core Documentation
 
@@ -18,29 +18,47 @@ This document lists all files included in the Deep Research Benchmarks release a
 
 ### INSTALLATION.md
 **Purpose**: Detailed installation instructions  
-**Content**: System requirements, multiple installation methods, troubleshooting  
+**Content**: System requirements, installation methods, troubleshooting  
 **Audience**: Users setting up the environment  
 **Read**: Before running any code
 
 ### DATA_FORMAT.md
 **Purpose**: Data format specifications  
-**Content**: Input/output formats, schema definitions, validation rules  
-**Audience**: Users working with custom datasets  
-**Read**: When preparing your own data
+**Content**: Input/output formats, JSONL structure, validation rules  
+**Audience**: Users working with the data  
+**Read**: When preparing or analyzing data
+
+### FOLDER_STRUCTURE.md
+**Purpose**: Directory organization guide  
+**Content**: Complete directory tree, setup instructions, path references  
+**Audience**: Users setting up the project  
+**Read**: During initial setup
+
+### FILE_MANIFEST.md
+**Purpose**: File index (this document)  
+**Content**: List and description of all files  
+**Audience**: Users wanting a complete overview  
+**Read**: For reference
+
+### SETUP_GUIDE.md
+**Purpose**: Step-by-step setup instructions  
+**Content**: Complete setup workflow from scratch  
+**Audience**: New users  
+**Read**: First time setup
+
+### PACKAGE_SUMMARY.md
+**Purpose**: Package overview  
+**Content**: Summary of package contents and structure  
+**Audience**: All users  
+**Read**: For a high-level overview
 
 ## 🛠️ Configuration Files
 
 ### requirements.txt
 **Purpose**: Python dependencies  
-**Content**: List of required packages with version constraints  
+**Content**: List of required packages (pandas, litellm, tqdm, etc.)  
 **Usage**: `pip install -r requirements.txt`  
 **Type**: Installation file
-
-### .env.example
-**Purpose**: Environment variables template  
-**Content**: API keys, configuration options  
-**Usage**: Copy to `.env` and fill in your values  
-**Type**: Configuration template
 
 ### setup.py
 **Purpose**: Package installation configuration  
@@ -54,25 +72,13 @@ This document lists all files included in the Deep Research Benchmarks release a
 **Usage**: Automatically used by Git  
 **Type**: Version control configuration
 
+### .env (user-created)
+**Purpose**: API credentials  
+**Content**: LITELLM_API_KEY=your_key_here  
+**Usage**: Created by user, never committed  
+**Type**: Configuration file
+
 ## 📖 Additional Documentation
-
-### CONTRIBUTING.md
-**Purpose**: Contribution guidelines  
-**Content**: Development setup, code style, pull request process  
-**Audience**: Contributors and developers  
-**Read**: Before contributing code
-
-### CHANGELOG.md
-**Purpose**: Version history  
-**Content**: Changes, additions, and fixes in each version  
-**Audience**: Users tracking updates  
-**Read**: When upgrading versions
-
-### CITATION.bib
-**Purpose**: Academic citation information  
-**Content**: BibTeX citation for the paper  
-**Audience**: Researchers citing this work  
-**Usage**: Copy and paste into your bibliography
 
 ### LICENSE
 **Purpose**: Software license  
@@ -80,176 +86,147 @@ This document lists all files included in the Deep Research Benchmarks release a
 **Audience**: Anyone using or distributing the code  
 **Read**: To understand usage rights
 
+### CITATION.bib
+**Purpose**: Academic citation information  
+**Content**: BibTeX citation for the paper  
+**Audience**: Researchers citing this work  
+**Usage**: Copy and paste into your bibliography
+
 ## 🎯 Evaluation Prompts
 
-### prompts/ternary/system_prompt.txt
-**Purpose**: System prompt for ternary evaluation  
-**Content**: Instructions for evaluating with 3 classes (Satisfied/Partially/Not)  
+### src/prompts/system_prompt.txt
+**Purpose**: System prompt for rubric evaluation  
+**Content**: Instructions for the LLM evaluator  
 **Usage**: Loaded automatically by evaluation scripts  
 **Type**: LLM prompt template
 
-### prompts/ternary/user_prompt_template.txt
-**Purpose**: User prompt template for ternary evaluation  
-**Content**: Template for rubric evaluation requests (3 classes)  
+### src/prompts/user_prompt.txt
+**Purpose**: User prompt template for evaluation  
+**Content**: Template for rubric evaluation requests  
 **Usage**: Loaded and formatted by evaluation scripts  
 **Type**: LLM prompt template
 
-### prompts/binary/system_prompt.txt
-**Purpose**: System prompt for binary evaluation  
-**Content**: Instructions for evaluating with 2 classes (Satisfied/Not Satisfied)  
-**Usage**: Loaded automatically when binary=True  
+### src/prompts/chunk_prompt_template.txt
+**Purpose**: Prompt for evaluating document chunks  
+**Content**: Template for chunk-level evaluation  
+**Usage**: Used when documents exceed token limits  
 **Type**: LLM prompt template
 
-### prompts/binary/user_prompt_template.txt
-**Purpose**: User prompt template for binary evaluation  
-**Content**: Template for rubric evaluation requests (2 classes)  
-**Usage**: Loaded and formatted when binary=True  
+### src/prompts/synthesis_prompt_template.txt
+**Purpose**: Prompt for synthesizing chunk evaluations  
+**Content**: Template for combining chunk results  
+**Usage**: Used to create final verdict from chunks  
 **Type**: LLM prompt template
 
-## 📂 Directory Structure (Expected)
+## 📂 Source Code Files
 
-While not included in this release package, the following directories should be created:
+### src/evaluate_rubrics/evaluate_single_report.py
+**Purpose**: Single report evaluation  
+**Content**: `RubricEvaluator` class and `evaluate_task_rubrics` function  
+**Usage**: Evaluate one markdown file against its rubrics  
+**Type**: Python module
 
-```
-public_release_experiments/
-├── src/                          # Source code (your codebase)
-│   ├── extract_rubrics/          # Rubric extraction scripts
-│   ├── evaluate_rubrics/         # LLM evaluation scripts
-│   └── calculate_metrics/        # Metrics calculation scripts
-├── data/                         # Data directory
-│   ├── raw_csvs/                 # Input: Raw CSV files
-│   ├── processed_df/             # Output: Compiled datasets
-│   ├── PDFs/                     # Downloaded PDFs
-│   └── predownloaded_pdfs/       # Optional: Pre-downloaded PDFs
-├── results/                      # Evaluation results
-├── cache/                        # Cached conversions
-└── tests/                        # Test files (optional)
-```
+### src/evaluate_rubrics/evaluate_reports_batch.py
+**Purpose**: Batch evaluation script  
+**Content**: Process all markdown files in `agent_responses/`  
+**Usage**: `python evaluate_reports_batch.py`  
+**Type**: Python script
 
-## 📊 File Sizes (Approximate)
+### src/calculate_metrics/calculate_compliance_score.py
+**Purpose**: Compliance score calculation  
+**Content**: Calculate weighted compliance scores from evaluation results  
+**Usage**: `python calculate_compliance_score.py`  
+**Type**: Python script
 
-| File | Size | Type |
-|------|------|------|
-| README.md | ~9 KB | Markdown |
-| QUICKSTART.md | ~5 KB | Markdown |
-| INSTALLATION.md | ~8 KB | Markdown |
-| DATA_FORMAT.md | ~9 KB | Markdown |
-| CONTRIBUTING.md | ~3 KB | Markdown |
-| requirements.txt | ~0.5 KB | Text |
-| setup.py | ~2 KB | Python |
-| .env.example | ~0.4 KB | Text |
-| LICENSE | ~1 KB | Text |
-| CHANGELOG.md | ~2 KB | Markdown |
-| CITATION.bib | ~0.3 KB | BibTeX |
-| .gitignore | ~0.9 KB | Text |
-| Prompts (all) | ~2 KB | Text |
-| **Total** | **~43 KB** | - |
+### src/__init__.py
+**Purpose**: Package marker  
+**Content**: (typically empty)  
+**Type**: Python package file
 
-## 🔄 File Dependencies
+### tests/__init__.py
+**Purpose**: Test package marker  
+**Content**: (typically empty)  
+**Type**: Python package file
 
-### Installation Flow
-1. Read `README.md`
-2. Follow `INSTALLATION.md`
-3. Configure `.env` from `.env.example`
-4. Install using `requirements.txt` or `setup.py`
+## 📊 Data Files (Expected Structure)
 
-### Usage Flow
-1. Read `QUICKSTART.md`
-2. Prepare data according to `DATA_FORMAT.md`
-3. Run scripts (which use `prompts/`)
-4. Analyze results
+### data/researchrubrics/processed_data.jsonl
+**Purpose**: Input data with rubrics and metadata  
+**Content**: One JSON object per line with prompts, sample IDs, and rubrics  
+**Format**: JSONL (JSON Lines)  
+**Type**: Input data file
 
-### Development Flow
-1. Read `CONTRIBUTING.md`
-2. Setup dev environment from `requirements.txt` + dev tools
-3. Follow code style in `CONTRIBUTING.md`
-4. Update `CHANGELOG.md` with changes
+### data/researchrubrics/README.md
+**Purpose**: Dataset documentation template  
+**Content**: Hugging Face dataset card template  
+**Type**: Documentation
 
-## 📝 Customization Guide
+### agent_responses/[sample_id].md
+**Purpose**: AI-generated research reports to evaluate  
+**Content**: Markdown-formatted research documents  
+**Format**: Markdown  
+**Type**: Input files
 
-### Which Files to Modify
+### results/batch_evaluation_YYYYMMDD_HHMMSS.jsonl
+**Purpose**: Evaluation results  
+**Content**: One evaluation result per line  
+**Format**: JSONL  
+**Type**: Output file
 
-**For Your Institution/Project**:
-- `README.md`: Update author information, contact details, repository URL
-- `CITATION.bib`: Add actual authors and publication details
-- `LICENSE`: Update copyright holder and year
-- `setup.py`: Update package metadata and URLs
+## 📝 File Count Summary
 
-**For Configuration**:
-- `.env`: Add your actual API keys (don't commit this!)
-- `requirements.txt`: Add or update dependencies as needed
-
-**For Custom Evaluation**:
-- `prompts/`: Modify prompts to match your evaluation criteria
-- `DATA_FORMAT.md`: Document any custom data formats
-
-**Don't Modify** (unless necessary):
-- `.gitignore`: Standard exclusions work for most cases
-- `CONTRIBUTING.md`: Generic guidelines applicable to most projects
+**Total Documentation**: 8 files  
+**Total Configuration**: 3 files  
+**Total Prompts**: 4 files  
+**Total Source Code**: 4 Python files  
+**Total Package Markers**: 2 files  
+**Expected Data Files**: Variable (3 sample markdown files in current repo)
 
 ## 🔍 Finding Information
 
 **"How do I install?"** → `INSTALLATION.md`  
 **"How do I run it?"** → `QUICKSTART.md`  
 **"What's the data format?"** → `DATA_FORMAT.md`  
-**"How do I contribute?"** → `CONTRIBUTING.md`  
+**"What's this project?"** → `README.md`  
+**"How do I set up?"** → `SETUP_GUIDE.md` or `FOLDER_STRUCTURE.md`  
 **"What's the license?"** → `LICENSE`  
 **"How do I cite?"** → `CITATION.bib`  
-**"What changed?"** → `CHANGELOG.md`  
-**"What's this project?"** → `README.md`
-
-## ✅ Pre-Release Checklist
-
-Before releasing, ensure:
-
-- [ ] Update `README.md` with correct repository URL
-- [ ] Fill in actual authors in `CITATION.bib`
-- [ ] Update copyright year in `LICENSE`
-- [ ] Verify all URLs in documentation
-- [ ] Update contact information
-- [ ] Set correct version in `setup.py` and `CHANGELOG.md`
-- [ ] Test installation instructions
-- [ ] Verify all example code works
-- [ ] Remove any sensitive information
-- [ ] Update `.env.example` with correct variables
-
-## 📞 Support
-
-For questions about specific files:
-- **Installation issues**: See `INSTALLATION.md` troubleshooting section
-- **Usage questions**: Check `QUICKSTART.md` examples
-- **Data format**: Refer to `DATA_FORMAT.md`
-- **Contributing**: Read `CONTRIBUTING.md`
-- **Other**: Open an issue or contact maintainers
+**"What files are there?"** → This file (`FILE_MANIFEST.md`)
 
 ## 📦 Distribution
 
 When distributing this code release:
 
-1. **Include all files listed above**
-2. **Do NOT include**:
-   - `.env` (with actual keys)
-   - `data/` directories with actual data
-   - `cache/` directory
-   - `results/` directory
-   - `__pycache__/` directories
-3. **Optional to include**:
-   - Sample datasets (if license permits)
-   - Example notebooks
-   - Test files
+### Include:
+- ✅ All documentation files (8 files)
+- ✅ All configuration templates (requirements.txt, setup.py, .gitignore)
+- ✅ All source code (src/ directory)
+- ✅ All prompt templates (src/prompts/)
+- ✅ Empty directory structure (data/, agent_responses/, results/, cache/, tests/)
+- ✅ LICENSE and CITATION.bib
 
-## 🔗 Related Files (Not in This Package)
+### Do NOT Include:
+- ❌ `.env` (with actual API keys)
+- ❌ Actual data files (unless publicly shareable)
+- ❌ `cache/` contents
+- ❌ `results/` with actual evaluation outputs
+- ❌ `__pycache__/` directories
+- ❌ `.pyc` files
 
-These files are part of your codebase but documented separately:
+## ✅ Verification Checklist
 
-- `src/extract_rubrics/*.py`: Rubric extraction scripts
-- `src/evaluate_rubrics/*.py`: Evaluation scripts
-- `src/calculate_metrics/*.py`: Metrics calculation scripts
-
-See the source code documentation and README.md for details on these files.
+After setup, ensure:
+- [ ] All 8 documentation files present in root
+- [ ] requirements.txt, setup.py, .gitignore in root
+- [ ] All 4 prompt files in `src/prompts/`
+- [ ] 2 evaluation scripts in `src/evaluate_rubrics/`
+- [ ] 1 metrics script in `src/calculate_metrics/`
+- [ ] `.env` created with LITELLM_API_KEY
+- [ ] `data/researchrubrics/processed_data.jsonl` exists
+- [ ] Markdown files in `agent_responses/`
+- [ ] Dependencies installed
 
 ---
 
-**Last Updated**: 2025-01-XX  
-**Version**: 1.0.0  
-**Maintained By**: [Maintainer Name/Team]
+**Last Updated**: 2025-11-13  
+**Version**: 1.0.0

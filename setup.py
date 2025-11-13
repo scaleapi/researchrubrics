@@ -6,14 +6,14 @@ this_directory = Path(__file__).parent
 long_description = (this_directory / "README.md").read_text(encoding="utf-8")
 
 setup(
-    name="deep-research-benchmarks",
+    name="research-rubrics",
     version="1.0.0",
-    author="[Authors]",
-    author_email="[contact@email.com]",
-    description="Deep Research Benchmarks",
+    author="Manasi Sharma et al.",
+    author_email="manasi.sharma@scale.com",
+    description="ResearchRubrics: A Benchmark of Prompts and Rubrics For Evaluating Deep Research Agents",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/[username]/deep-research-benchmarks",
+    url="https://github.com/scaleapi/researchrubrics",
     packages=find_packages(where="src"),
     package_dir={"": "src"},
     classifiers=[
