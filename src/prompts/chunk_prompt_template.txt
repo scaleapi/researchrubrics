@@ -1,0 +1,23 @@
+You are evaluating a large document in chunks. This is chunk {chunk_num} of {total_chunks}.
+
+## Previous Context Summary
+{context_summary}
+
+## Current Chunk Content
+{chunk_content}
+
+## Rubric Criterion
+**Title**: {rubric_title}
+**Category**: {rubric_category}
+
+Please evaluate this chunk for evidence related to the rubric criterion. Your response should be in JSON format:
+
+```json
+{{
+  "relevant_evidence": ["Evidence point 1", "Evidence point 2", ...],
+  "satisfaction": true/false,
+  "confidence_for_chunk": [0.0-1.0],
+  "notes": "Any important observations"
+}}
+```
+

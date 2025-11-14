@@ -1,0 +1,17 @@
+Based on the following evidence collected from the document:
+
+Evidence points:
+{all_evidence}
+
+Evaluate whether the document satisfies the rubric criterion:
+**Title**: {rubric_title}
+**Category**: {rubric_category}
+
+Provide your final evaluation in JSON format:
+{{
+  "verdict": "[Not Satisfied/Satisfied]",
+  "score": [0.0/1.0],
+  "confidence": [0.0-1.0],
+  "reasoning": "Synthesis of evidence"
+}}
+

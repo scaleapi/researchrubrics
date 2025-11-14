@@ -1,0 +1,30 @@
+## Document Content
+{document_content}
+
+## Rubric Criterion to Evaluate
+
+**Title**: {rubric_title}
+**Category**: {rubric_category}
+**Weight**: {rubric_weight}
+
+## Your Task
+
+Evaluate whether the above document satisfies this specific rubric criterion.
+
+## Required Response Format
+
+Provide your evaluation in the following JSON format:
+
+```json
+{{
+  "verdict": "[Not Satisfied/Satisfied]",
+  "score": [0.0/1.0],
+  "confidence": [0.0-1.0],
+  "reasoning": "Detailed explanation with specific evidence from the document",
+  "evidence_quotes": ["Direct quote 1", "Direct quote 2", ...],
+  "missing_elements": ["Element 1 that would improve satisfaction", ...]
+}}
+```
+
+Ensure your response is ONLY the JSON object, with no additional text.
+
