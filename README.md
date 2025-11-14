@@ -1,4 +1,4 @@
-# Research Rubrics
+# ResearchRubrics
 
 Official code release for the ResearchRubrics project. This repository contains tools for evaluating AI-generated research documents against structured rubric criteria using Large Language Models (LLMs).
 
