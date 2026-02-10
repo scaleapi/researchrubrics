@@ -1,6 +1,6 @@
 # ResearchRubrics
 
-Official code release for the ResearchRubrics project. This repository contains tools for evaluating AI-generated research documents against structured rubric criteria using Large Language Models (LLMs).
+Official code release for the ICLR 2026 paper "ResearchRubrics: A Benchmark of Prompts and Rubrics For Evaluating Deep Research Agents" (https://www.arxiv.org/abs/2511.07685). This repository contains tools for evaluating AI-generated research documents against structured rubric criteria using Large Language Models (LLMs).
 
 ## Overview
 
